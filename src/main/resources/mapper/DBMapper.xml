@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mirac.main.ypassport.dao.DBMapper">
+
+    <select id="findById" parameterType="string" resultMap="pointMap">
+        select * from point where id = #{id}
+    </select>
+
+    <select id="findAllWuliu"  resultType="com.mirac.main.ypassport.pojo.Wuliu" >
+        select * from wuliu
+    </select>
+
+    <select id="findAllJiezhongren" resultType="com.mirac.main.ypassport.pojo.Jiezhongren">
+        select * from jiezhongren
+    </select>
+
+    <select id="findJiezhongrenById" resultType="com.mirac.main.ypassport.pojo.Jiezhongren">
+        select * from jiezhongren where p_id = #{id}
+    </select>
+    <select id="findAllPoint" resultType="com.mirac.main.ypassport.pojo.Point">
+        select * from point
+    </select>
+    <select id="findUserByUsernameAndPassword" parameterType="com.mirac.main.ypassport.pojo.User" resultType="com.mirac.main.ypassport.pojo.User">
+        select * from user where email = #{email} and password = #{password}
+    </select>
+    <select id="findInIds" resultMap="user" parameterType="string">
+        <where>
+            <if test="ids !=null and ids.size() > 0">
+                <foreach collection="ids" open="id in ( " close=")" item="uid" separator=",">
+                    #{uid}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <resultMap id="findbyId"  type="com.mirac.main.ypassport.pojo.Jiezhongdian">
+
+    </resultMap>
+    <resultMap id="pointMap" type="com.mirac.main.ypassport.pojo.Point">
+        <id column="int" property="id"></id>
+        <result column="type" property="type"></result>
+        <result column="y_id" property="yId"></result>
+        <result column="y_name" property="yName"></result>
+        <result column="p_id" property="pId"></result>
+        <result column="p_name" property="pName"></result>
+        <result column="c_name" property="cName"></result>
+        <result column="t_name" property="tName"></result>
+        <result column="fangyi" property="fangyi"></result>
+        <result column="point" property="point"></result>
+    </resultMap>
+</mapper>

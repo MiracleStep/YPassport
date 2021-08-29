@@ -1,0 +1,10 @@
+.container {
+    width: 1200px;
+    margin: 0 auto;
+}
+
+#myEcharts {
+    width: 760px;
+    height: 480px;
+    margin: 0 auto;
+}

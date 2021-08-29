@@ -1,0 +1,118 @@
+<!--status用来指定log4j本身的打印日志的级别.-->
+<!--monitorinterval用于指定log4j自动重新配置的监测间隔时间，单位是s,最小是5s.-->
+<!--
+    <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>
+
+        </dependency>
+        引入log4j2依赖
+        <dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>a
+-->
+<configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_HOME">./log</Property>
+        <Property name="pattern_layout">%d{yyyy-MM-dd HH:mm:ss.SSS}|%-5p|[%t]|[%c{1}:%L]|%m%n</Property>
+    </Properties>
+    <!--先定义所有的appender-->
+    <appenders>
+        <!--这个输出控制台的配置-->
+        <console name="Console" target="SYSTEM_OUT">
+            <!--输出日志的格式-->
+            <PatternLayout pattern="${pattern_layout}"/>
+        </console>
+
+        <!-- 文件打印配置，支持文件滚动归档和缓存；filePattern设置滚动单位为d(天)，%i代表从1开始的正整数，%3i可为3位 -->
+        <RollingRandomAccessFile name="file"
+                                 fileName="${LOG_HOME}/run.log"
+                                 filePattern="${LOG_HOME}/run/run-%d{yyyy-MM-dd}-%i.log"
+                                 filePermissions="rw-------">
+            <!-- 打印格式 -->
+            <PatternLayout pattern="${pattern_layout}"/>
+            <!-- 滚动策略 -->
+            <Policies>
+                <!-- 文件每超过10MB就生成一个新的日志文件 -->
+                <SizeBasedTriggeringPolicy size="10MB"/>
+
+                <!-- 每1天生成一个新的日志文件，并修正时间，这个一天是根据filePattern的精度值确定的 -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <!--保存日志文件个数-->
+            <DefaultRolloverStrategy max="20">
+                <!--用户可以更好地控制选择文件的属主、属组、权限等属性中的哪一个来作为滚动依据-->
+                <PosixViewAttribute basePath="${LOG_HOME}/run" filePermissions="r--------">
+                    <IfFileName glob="*.log"/>
+                </PosixViewAttribute>
+
+                <!--delete表示删除满足条件的文件，maxDepth代表目录扫描的深度-->
+                <Delete basePath="${LOG_HOME}/run" maxDepth="1">
+                    <!--制定文件名称-->
+                    <IfFileName glob="*.log"/>
+                    <!--删除10天前的日志文件-->
+                    <IfLastModified age="10d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+
+
+        <!-- 这个会打印出所有的info及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+        <!--filePattern  指定新建日志文件的名称格式-->
+        <RollingFile name="RollingFileInfo" fileName="${LOG_HOME}/logs/info.log"
+                     filePattern="${LOG_HOME}/logs/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingFile>
+
+
+        <RollingFile name="RollingFileWarn" fileName="${LOG_HOME}/logs/warn.log"
+                     filePattern="${LOG_HOME}/logs/$${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log">
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了20 -->
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+
+        <RollingFile name="RollingFileError" fileName="${LOG_HOME}/logs/error.log"
+                     filePattern="${LOG_HOME}/logs/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log">
+            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingFile>
+    </appenders>
+
+    <!--然后定义logger，只有定义了logger并引入的appender，appender才会生效-->
+    <loggers>
+        <!--过滤掉spring和mybatis的一些无用的DEBUG信息-->
+        <logger name="org.springframework" level="INFO"></logger>
+        <logger name="org.mybatis" level="INFO"></logger>
+        <root level="all">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFileInfo"/>
+            <appender-ref ref="RollingFileWarn"/>
+            <appender-ref ref="RollingFileError"/>
+            <appender-ref ref="file"/>
+        </root>
+    </loggers>
+</configuration>
+
